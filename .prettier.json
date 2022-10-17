@@ -1,0 +1,8 @@
+{
+  "trainingComma": "none",
+  "tabWidth": 2,
+  "semi": true,
+  "singQuote": true,
+  "bracketSpacing": true,
+  "printWidth": 140
+}
