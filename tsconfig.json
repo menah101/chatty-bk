@@ -24,11 +24,11 @@
       { "transform": "typescript-transform-paths", "afterDecorators": true }
     ],
     "paths": {
-      "@root/*": ["src/*"],
       "@global/*": ["src/shared/globals/*"],
       "@server/*": ["src/shared/servers/*"],
       "@socket/*": ["src/shared/sockets/*"],
-      "@worker/*": ["src/shared/workers/*"]
+      "@worker/*": ["src/shared/workers/*"],
+      "@root/*": ["src/*"],
     }
   }
 }
