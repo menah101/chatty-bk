@@ -11,6 +11,9 @@ import { uploads } from '@global/helpers/cloudinary-upload';
 import HTTP_STATUS from 'http-status-codes';
 import { UserCache } from '@root/shared/services/redis/user.cache';
 import { IUserDocument } from '@root/features/user/interfaces/user.interface';
+import { omit } from 'lodash';
+import { authQueue } from '@root/shared/services/queues/auth.queue';
+import { userQueue } from '@root/shared/services/queues/user.queue';
 
 const userCache: UserCache = new UserCache();
 
@@ -35,26 +38,42 @@ export class SignUp {
       username,
       email,
       password,
-      avatarColor
+      avatarColor,
     });
 
-    const result: UploadApiResponse = await uploads(
+    const result: UploadApiResponse = (await uploads(
       avatarImage,
       `${userObjectId}`,
       true,
       true
-    ) as UploadApiResponse;
+    )) as UploadApiResponse;
 
     if (!result?.public_id) {
       throw new BadRequestError('File upload: Error occurred. Try again.');
     }
 
     // Add to redis cache
-    const userDataForCache: IUserDocument = SignUp.prototype.userData(authData, userObjectId);
-    userDataForCache.profilePicture = `https://res/cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${userObjectId}`;
+    const userDataForCache: IUserDocument = SignUp.prototype.userData(
+      authData,
+      userObjectId
+    );
+    userDataForCache.profilePicture = `https://res.cloudinary.com/dyamr9ym3/image/upload/v${result.version}/${userObjectId}`;
     await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache);
 
-    res.status(HTTP_STATUS.CREATED).json({ message: 'User created successfully', authData });
+    // Add to database
+    omit(userDataForCache, [
+      'uId',
+      'username',
+      'email',
+      'avatarColor',
+      'password',
+    ]);
+    authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForCache });
+    userQueue.addUserJob('addUserToDB', { value: userDataForCache });
+    res
+      .status(HTTP_STATUS.CREATED)
+      .json({ message: 'User created successfully', authData });
+
   }
 
   private signupData(data: ISignUpData): IAuthDocument {
@@ -97,14 +116,14 @@ export class SignUp {
         messages: true,
         reactions: true,
         comments: true,
-        follows: true
+        follows: true,
       },
       social: {
         facebook: '',
         instagram: '',
         twitter: '',
-        youtube: ''
-      }
+        youtube: '',
+      },
     } as unknown as IUserDocument;
   }
 }
