@@ -11,7 +11,6 @@ import { uploads } from '@global/helpers/cloudinary-upload';
 import HTTP_STATUS from 'http-status-codes';
 import { UserCache } from '@root/shared/services/redis/user.cache';
 import { IUserDocument } from '@root/features/user/interfaces/user.interface';
-import { omit } from 'lodash';
 import { authQueue } from '@root/shared/services/queues/auth.queue';
 import { userQueue } from '@root/shared/services/queues/user.queue';
 import JWT from 'jsonwebtoken';
@@ -67,13 +66,11 @@ export class SignUp {
 
     const userJwt: string = SignUp.prototype.signToken(authData, userObjectId);
     req.session = { jwt: userJwt };
-    res
-      .status(HTTP_STATUS.CREATED)
-      .json({
-        message: 'User created successfully',
-        user: userDataForCache,
-        token: userJwt,
-      });
+    res.status(HTTP_STATUS.CREATED).json({
+      message: 'User created successfully',
+      user: userDataForCache,
+      token: userJwt,
+    });
   }
 
   private signToken(data: IAuthDocument, userObjectId: ObjectId): string {
