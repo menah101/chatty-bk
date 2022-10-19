@@ -14,6 +14,8 @@ import { IUserDocument } from '@root/features/user/interfaces/user.interface';
 import { omit } from 'lodash';
 import { authQueue } from '@root/shared/services/queues/auth.queue';
 import { userQueue } from '@root/shared/services/queues/user.queue';
+import JWT from 'jsonwebtoken';
+import { config } from '@root/config';
 
 const userCache: UserCache = new UserCache();
 
@@ -23,7 +25,6 @@ export class SignUp {
     const { username, email, password, avatarColor, avatarImage } = req.body;
     const checkIfUserExist: IAuthDocument =
       await authService.getUserByUsernameOrEmail(username, email);
-
     if (checkIfUserExist) {
       throw new BadRequestError('Invalid credentials');
     }
@@ -31,7 +32,9 @@ export class SignUp {
     const authObjectId: ObjectId = new ObjectId();
     const userObjectId: ObjectId = new ObjectId();
     const uId = `${Helpers.generateRandomIntegers(12)}`;
-
+    // the reason we are using SignUp.prototype.signupData and not this.signupData is because
+    // of how we invoke the create method in the routes method.
+    // the scope of the this object is not kept when the method is invoked
     const authData: IAuthDocument = SignUp.prototype.signupData({
       _id: authObjectId,
       uId,
@@ -40,14 +43,12 @@ export class SignUp {
       password,
       avatarColor,
     });
-
     const result: UploadApiResponse = (await uploads(
       avatarImage,
       `${userObjectId}`,
       true,
       true
     )) as UploadApiResponse;
-
     if (!result?.public_id) {
       throw new BadRequestError('File upload: Error occurred. Try again.');
     }
@@ -61,24 +62,35 @@ export class SignUp {
     await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache);
 
     // Add to database
-    omit(userDataForCache, [
-      'uId',
-      'username',
-      'email',
-      'avatarColor',
-      'password',
-    ]);
-    authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForCache });
+    authQueue.addAuthUserJob('addAuthUserToDB', { value: authData });
     userQueue.addUserJob('addUserToDB', { value: userDataForCache });
+
+    const userJwt: string = SignUp.prototype.signToken(authData, userObjectId);
+    req.session = { jwt: userJwt };
     res
       .status(HTTP_STATUS.CREATED)
-      .json({ message: 'User created successfully', authData });
+      .json({
+        message: 'User created successfully',
+        user: userDataForCache,
+        token: userJwt,
+      });
+  }
 
+  private signToken(data: IAuthDocument, userObjectId: ObjectId): string {
+    return JWT.sign(
+      {
+        userId: userObjectId,
+        uId: data.uId,
+        email: data.email,
+        username: data.username,
+        avatarColor: data.avatarColor,
+      },
+      config.JWT_TOKEN!
+    );
   }
 
   private signupData(data: ISignUpData): IAuthDocument {
     const { _id, username, email, uId, password, avatarColor } = data;
-
     return {
       _id,
       uId,
