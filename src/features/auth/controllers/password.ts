@@ -39,7 +39,7 @@ export class Password {
       existingUser.username!,
       resetLink
     );
-    emailQueue.addEMailJob('forgotPasswordEmail', {
+    emailQueue.addEmailJob('forgotPasswordEmail', {
       template,
       receiverEmail: email,
       subject: 'Reset your password',
@@ -76,7 +76,7 @@ export class Password {
 
     const template: string =
       resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
-    emailQueue.addEMailJob('forgotPasswordEmail', {
+    emailQueue.addEmailJob('forgotPasswordEmail', {
       template,
       receiverEmail: existingUser.email!,
       subject: 'Password Reset Confirmation',

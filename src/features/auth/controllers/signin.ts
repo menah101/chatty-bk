@@ -65,16 +65,16 @@ export class SignIn {
     // End test send mail
 
     // Test Reset Password
-    const templateParams: IResetPasswordParams = {
-      username: existingUser.username!,
-      email: existingUser.email!,
-      ipaddress: publicIP.address(),
-      date: moment().format('DD/MM/YYYY HH:mm')
-    };
+    // const templateParams: IResetPasswordParams = {
+    //   username: existingUser.username!,
+    //   email: existingUser.email!,
+    //   ipaddress: publicIP.address(),
+    //   date: moment().format('DD/MM/YYYY HH:mm')
+    // };
 
     // const resetLint = `${config.CLIENT_URL}/reset-password?token=12213123123123123`;
-    const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
-    emailQueue.addEMailJob('forgotPasswordEmail', {template, receiverEmail: 'dina.connelly90@ethereal.email', subject: 'Pass reset config'});
+    // const template: string = resetPasswordTemplate.passwordResetConfirmationTemplate(templateParams);
+    // emailQueue.addEMailJob('forgotPasswordEmail', {template, receiverEmail: 'dina.connelly90@ethereal.email', subject: 'Pass reset config'});
     // End test reset password
     res.status(HTTP_STATUS.OK).json({
       message: 'User login successfully',
