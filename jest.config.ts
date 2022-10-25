@@ -8,21 +8,17 @@ const config: Config.InitialOptions = {
   collectCoverage: true,
   testPathIgnorePatterns: ['/node_modules/'],
   transform: {
-    '^.+\\.ts?$': 'ts-jest',
+    '^.+\\.ts?$': 'ts-jest'
   },
   testMatch: ['<rootDir>/src/**/test/*.ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/test/*.ts?(x)',
-    '!**/node_modules/**',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/test/*.ts?(x)', '!**/node_modules/**'],
   coverageThreshold: {
     global: {
       branches: 1,
       functions: 1,
       lines: 1,
-      statements: 1,
-    },
+      statements: 1
+    }
   },
   coverageReporters: ['text-summary', 'lcov'],
   moduleNameMapper: {
@@ -40,7 +36,7 @@ const config: Config.InitialOptions = {
     '@socket/(.*)': ['<rootDir>/src/shared/sockets/$1'],
     '@worker/(.*)': ['<rootDir>/src/shared/workers/$1'],
     '@root/(.*)': ['<rootDir>/src/$1'],
-  },
+  }
 };
 
 export default config;
