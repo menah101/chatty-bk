@@ -5,6 +5,7 @@ import { authMiddleware } from '@global/helpers/auth-middleware';
 import { imageRoutes } from '@image/routes/imageRoutes';
 import { postRoutes } from '@post/routes/postRoutes';
 import { reactionRoutes } from '@reaction/routes/reactionRoutes';
+import { healthRoutes } from '@user/routes/healthRoutes';
 import { Application } from 'express';
 import { authRoutes } from './features/auth/routes/authRoutes';
 import { currentRoutes } from './features/auth/routes/currentRoutes';
@@ -14,6 +15,11 @@ const BASE_PATH = '/api/v1';
 export default (app: Application) => {
   const routes = () => {
     app.use('/queues', serverAdapter.getRouter());
+    app.use('', healthRoutes.health());
+    app.use('', healthRoutes.env());
+    app.use('', healthRoutes.instance());
+    app.use('', healthRoutes.fiboRoutes());
+
     app.use(BASE_PATH, authRoutes.routes());
     app.use(BASE_PATH, authRoutes.signoutRoutes());
 
